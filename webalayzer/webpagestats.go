@@ -1,6 +1,9 @@
 package webalayzer
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 type WebPageStats struct {
 	HTMLVersion string
@@ -16,8 +19,8 @@ type WebPageStats struct {
 	InternalLinksCount int
 	ExternalLinksCount int
 
-	InaccessibleLinksCount int
-	AccessibleLinksCount   int
+	InaccessibleLinksCount int32
+	AccessibleLinksCount   int32
 
 	// used to distinguish registration from login
 	PasswordInputsCount int
@@ -32,6 +35,7 @@ func (wps WebPageStats) HasRegistrationForm() bool {
 
 type WebPageStatsContext struct {
 	context.Context
-
 	*WebPageStats
+
+	accessibilityWg sync.WaitGroup
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync/atomic"
 )
 
 type Analyzer struct {
@@ -44,11 +45,14 @@ func (a *Analyzer) AnalyzeReader(ctx context.Context, reader io.Reader) (stats W
 		ctx = context.WithValue(ctx, "parsedUrl", parsedUrl)
 	}
 
-	ctx = &WebPageStatsContext{
+	wpsCtx := &WebPageStatsContext{
 		Context:      ctx,
 		WebPageStats: &stats,
 	}
-	err = traverseNode(ctx, node, a.analyzeNode)
+	err = traverseNode(wpsCtx, node, a.analyzeNode)
+
+	// wait for all accessibility checkers
+	wpsCtx.accessibilityWg.Wait()
 	return
 }
 
@@ -151,25 +155,32 @@ func (a *Analyzer) analyzeLinkAccessible(link string, stats *WebPageStatsContext
 	if err != nil {
 		return err
 	}
-	if parsed.IsAbs() {
-		resp, err := http.Get(link)
-		if err != nil || resp.StatusCode >= 400 || resp.StatusCode < 200 {
-			stats.InaccessibleLinksCount++
+
+	// branch accessibility checkers to their own goroutines to speed things up
+	stats.accessibilityWg.Add(1)
+	go func() {
+		defer stats.accessibilityWg.Done()
+
+		if parsed.IsAbs() {
+			resp, err := http.Get(link)
+			if err != nil || resp.StatusCode >= 400 || resp.StatusCode < 200 {
+				atomic.AddInt32(&stats.InaccessibleLinksCount, 1)
+			} else {
+				atomic.AddInt32(&stats.AccessibleLinksCount, 1)
+			}
 		} else {
-			stats.AccessibleLinksCount++
+			var currentPage string
+			if parsedUrl, ok := stats.Value("parsedUrl").(*url.URL); ok {
+				currentPage = parsedUrl.String()
+			}
+			resp, err := http.Get(currentPage + link)
+			if err != nil || resp.StatusCode >= 400 || resp.StatusCode < 200 {
+				atomic.AddInt32(&stats.InaccessibleLinksCount, 1)
+			} else {
+				atomic.AddInt32(&stats.AccessibleLinksCount, 1)
+			}
 		}
-	} else {
-		var currentPage string
-		if parsedUrl, ok := stats.Value("parsedUrl").(*url.URL); ok {
-			currentPage = parsedUrl.String()
-		}
-		resp, err := http.Get(currentPage + link)
-		if err != nil || resp.StatusCode >= 400 || resp.StatusCode < 200 {
-			stats.InaccessibleLinksCount++
-		} else {
-			stats.AccessibleLinksCount++
-		}
-	}
+	}()
 
 	return nil
 }
