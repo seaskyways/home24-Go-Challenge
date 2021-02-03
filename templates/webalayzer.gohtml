@@ -7,11 +7,13 @@
 <body>
 <h1>Analyzing URL</h1>
 <h3>{{.URL}}</h3>
+<h5>Done in: {{.Stats.ProcessingDuration.Seconds}} seconds</h5>
 {{if .Error}}
     <h1 style="color: darkred">An error occurred: {{.Error}}</h1>
 {{end}}
 <table>
     {{with .Stats}}
+        <tbody >
         <tr>
             <th>HTML Version</th>
             <td>{{.HTMLVersion}}</td>
@@ -80,8 +82,17 @@
             <th>Has a Registration Form?</th>
             <td>{{.HasRegistrationForm}}</td>
         </tr>
+        </tbody>
     {{end}}
 
 </table>
 </body>
+<style>
+    table, th, td {
+        border: 1px solid black;
+    }
+    table {
+        border-collapse: collapse;
+    }
+</style>
 </html>

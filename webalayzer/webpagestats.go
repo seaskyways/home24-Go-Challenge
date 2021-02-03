@@ -3,6 +3,7 @@ package webalayzer
 import (
 	"context"
 	"sync"
+	"time"
 )
 
 type WebPageStats struct {
@@ -24,6 +25,8 @@ type WebPageStats struct {
 
 	// used to distinguish registration from login
 	PasswordInputsCount int
+
+	ProcessingDuration time.Duration
 }
 
 func (wps WebPageStats) HasLoginForm() bool {

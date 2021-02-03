@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	"sync/atomic"
+	"time"
 )
 
 type Analyzer struct {
@@ -32,6 +33,9 @@ func (a *Analyzer) AnalyzeURL(ctx context.Context, url string) (stats WebPageSta
 }
 
 func (a *Analyzer) AnalyzeReader(ctx context.Context, reader io.Reader) (stats WebPageStats, err error) {
+	startTime := time.Now()
+	defer func() { stats.ProcessingDuration = time.Now().Sub(startTime) }()
+
 	node, err := html.Parse(reader)
 	if err != nil {
 		return
@@ -136,7 +140,7 @@ func (a *Analyzer) analyzeLink(link string, stats *WebPageStatsContext) error {
 		return err
 	}
 
-	if parsed.Host == pageHost {
+	if !parsed.IsAbs() || parsed.Host == pageHost {
 		stats.InternalLinksCount++
 	} else {
 		stats.ExternalLinksCount++
@@ -207,8 +211,4 @@ func checkAttributeEquals(node *html.Node, key, value string) bool {
 		return true
 	}
 	return false
-}
-
-func (a *Analyzer) getPageTitle(html []byte) string {
-	return ""
 }

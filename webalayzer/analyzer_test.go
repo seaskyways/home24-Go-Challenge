@@ -19,3 +19,14 @@ func TestAnalyzer_AnalyzeReader(t *testing.T) {
 		t.Logf("stats: %#v", webPageStats)
 	}
 }
+
+func TestAnalyzer_AnalyzeGitHub(t *testing.T) {
+	analyzer := new(Analyzer)
+	webPageStats, err := analyzer.AnalyzeURL(context.Background(), "https://github.com")
+
+	if err != nil {
+		t.Fatalf("error: %v", err)
+	} else {
+		t.Logf("stats: %#v", webPageStats)
+	}
+}
