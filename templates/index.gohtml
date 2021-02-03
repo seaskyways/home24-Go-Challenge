@@ -5,11 +5,13 @@
     <title>Home24 Webalayzer</title>
 </head>
 <body>
+{{block "webalayzerForm" .}}
 <form method="GET" action="webalayzer">
     <label>Enter your URL
         <input type="url" name="url"/>
     </label>
     <button type="submit">Go !</button>
 </form>
+{{end}}
 </body>
 </html>
