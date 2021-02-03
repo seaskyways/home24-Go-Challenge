@@ -177,7 +177,7 @@ func (a *Analyzer) analyzeLinkAccessible(link string, stats *WebPageStatsContext
 			if parsedUrl, ok := stats.Value("parsedUrl").(*url.URL); ok {
 				currentPage = parsedUrl.String()
 			}
-			resp, err := http.Get(currentPage + link)
+			resp, err := http.Get(currentPage + "/" + link)
 			if err != nil || resp.StatusCode >= 400 || resp.StatusCode < 200 {
 				atomic.AddInt32(&stats.InaccessibleLinksCount, 1)
 			} else {
