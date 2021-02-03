@@ -14,7 +14,7 @@ import (
 type Analyzer struct {
 }
 
-func (a *Analyzer) AnalyzeURL(url string) (stats WebPageStats, err error) {
+func (a *Analyzer) AnalyzeURL(ctx context.Context, url string) (stats WebPageStats, err error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return
@@ -25,7 +25,7 @@ func (a *Analyzer) AnalyzeURL(url string) (stats WebPageStats, err error) {
 	}
 	defer resp.Body.Close()
 
-	ctx := context.WithValue(context.Background(), "url", url)
+	ctx = context.WithValue(context.Background(), "url", url)
 
 	return a.AnalyzeReader(ctx, resp.Body)
 }
@@ -52,12 +52,12 @@ func (a *Analyzer) AnalyzeReader(ctx context.Context, reader io.Reader) (stats W
 	return
 }
 
-func (a *Analyzer) analyzeNode(context context.Context, node *html.Node) error {
-	statsCtx := context.(*WebPageStatsContext)
-
-	if node == nil {
+func (a *Analyzer) analyzeNode(ctx context.Context, node *html.Node) error {
+	if node == nil || ctx.Err() != nil {
 		return nil
 	}
+
+	statsCtx := ctx.(*WebPageStatsContext)
 
 	switch node.Type {
 	case html.DoctypeNode:

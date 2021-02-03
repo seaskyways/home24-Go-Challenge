@@ -25,14 +25,14 @@ func RunWebServer(addr string) error {
 		c.HTML(http.StatusOK, "test.gohtml", nil)
 	})
 
-	engine.GET("analyzer", func(c *gin.Context) {
+	engine.GET("webalayzer", func(c *gin.Context) {
 		pageParams := AnalyzerPageParams{}
 		pageParams.URL = strings.TrimSpace(c.Query("url"))
 		if len(pageParams.URL) == 0 {
 			pageParams.Error = ErrNoURL
 		}
 
-		webPageStats, err := analyzer.AnalyzeURL(pageParams.URL)
+		webPageStats, err := analyzer.AnalyzeURL(c, pageParams.URL)
 		if err != nil {
 			pageParams.Error = err
 		} else {
@@ -45,7 +45,7 @@ func RunWebServer(addr string) error {
 		} else {
 			status = http.StatusBadRequest
 		}
-		c.HTML(status, "analyzer.gohtml", &pageParams)
+		c.HTML(status, "webalayzer.gohtml", &pageParams)
 	})
 
 	return engine.Run(addr)
