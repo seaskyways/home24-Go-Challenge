@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"golang.org/x/net/html"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -14,6 +13,13 @@ import (
 )
 
 type Analyzer struct {
+	// checking inaccessible links is very taxing.
+	// This option allows the user to skip checking in/accessible links
+	SkipInaccessibleCheck bool
+
+	// empty Anchors are often used to return the user to the homepage.
+	// this option allows the user to choose whether these should be counted or not
+	SkipEmptyLinks bool
 }
 
 func (a *Analyzer) AnalyzeURL(ctx context.Context, url string) (stats WebPageStats, err error) {
@@ -104,8 +110,10 @@ func (a *Analyzer) analyzeElementNode(node *html.Node, stats *WebPageStatsContex
 			if err := a.analyzeLink(attr.Val, stats); err != nil {
 				fmt.Printf("error analyzing anchor link (%v): %v", attr.Val, err)
 			}
-			if err := a.analyzeLinkAccessible(attr.Val, stats); err != nil {
-				fmt.Printf("error analyzing link accessibility (%v): %v", attr.Val, err)
+			if !a.SkipInaccessibleCheck {
+				if err := a.analyzeLinkAccessible(attr.Val, stats); err != nil {
+					fmt.Printf("error analyzing link accessibility (%v): %v", attr.Val, err)
+				}
 			}
 		}
 
@@ -126,7 +134,9 @@ func (a *Analyzer) analyzeElementNode(node *html.Node, stats *WebPageStatsContex
 
 func (a *Analyzer) analyzeLink(link string, stats *WebPageStatsContext) error {
 	if len(link) == 0 {
-		log.Printf("analyzeLink: just received an empty link")
+		if !a.SkipEmptyLinks {
+			stats.InternalLinksCount++
+		}
 		return nil
 	}
 
@@ -151,7 +161,9 @@ func (a *Analyzer) analyzeLink(link string, stats *WebPageStatsContext) error {
 
 func (a *Analyzer) analyzeLinkAccessible(link string, stats *WebPageStatsContext) error {
 	if len(link) == 0 {
-		log.Printf("analyzeLinkAccessible: just received an empty link")
+		if !a.SkipEmptyLinks {
+			stats.AccessibleLinksCount++
+		}
 		return nil
 	}
 
@@ -162,29 +174,32 @@ func (a *Analyzer) analyzeLinkAccessible(link string, stats *WebPageStatsContext
 
 	// branch accessibility checkers to their own goroutines to speed things up
 	stats.accessibilityWg.Add(1)
-	go func() {
+	go func(link string) {
 		defer stats.accessibilityWg.Done()
 
-		if parsed.IsAbs() {
-			resp, err := http.Get(link)
-			if err != nil || resp.StatusCode >= 400 || resp.StatusCode < 200 {
-				atomic.AddInt32(&stats.InaccessibleLinksCount, 1)
-			} else {
-				atomic.AddInt32(&stats.AccessibleLinksCount, 1)
-			}
-		} else {
+		if !parsed.IsAbs() {
+			// add relative URL to current page to make the link absolute
 			var currentPage string
-			if parsedUrl, ok := stats.Value("parsedUrl").(*url.URL); ok {
+			if parsedUrl, ok := stats.Value("parsedUrl").(*url.URL); ok && parsedUrl != nil {
 				currentPage = parsedUrl.String()
 			}
-			resp, err := http.Get(currentPage + "/" + link)
-			if err != nil || resp.StatusCode >= 400 || resp.StatusCode < 200 {
-				atomic.AddInt32(&stats.InaccessibleLinksCount, 1)
-			} else {
-				atomic.AddInt32(&stats.AccessibleLinksCount, 1)
-			}
+			link = currentPage + "/" + link
 		}
-	}()
+
+		// using HEAD instead of GET to avoid downloading data we don't need
+		// From Mozilla Docs: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
+		// The HTTP HEAD method requests the headers that would be returned
+		// if the HEAD request's URL was instead requested with the HTTP GET method.
+		resp, err := http.Head(link)
+		if err != nil || resp == nil || resp.StatusCode >= 400 || resp.StatusCode < 200 {
+			atomic.AddInt32(&stats.InaccessibleLinksCount, 1)
+		} else {
+			atomic.AddInt32(&stats.AccessibleLinksCount, 1)
+		}
+		if resp != nil && resp.Body != nil {
+			_ = resp.Body.Close()
+		}
+	}(link)
 
 	return nil
 }
