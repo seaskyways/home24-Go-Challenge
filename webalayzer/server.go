@@ -18,7 +18,7 @@ func RunWebServer(addr string) error {
 	engine.LoadHTMLGlob("templates/*.gohtml")
 
 	engine.GET("", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.gohtml", nil)
+		c.HTML(http.StatusOK, "index.gohtml", &AnalyzerFormParams{})
 	})
 	engine.GET("test", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "test.gohtml", nil)
@@ -34,6 +34,9 @@ func RunWebServer(addr string) error {
 		analyzer := new(Analyzer)
 		analyzer.SkipInaccessibleCheck = c.Query("checkInaccessibleLinks") != "on"
 		analyzer.SkipEmptyLinks = c.Query("countEmptyLinks") != "on"
+
+		pageParams.SkipInaccessibleCheck = analyzer.SkipInaccessibleCheck
+		pageParams.SkipEmptyLinks = analyzer.SkipEmptyLinks
 
 		webPageStats, err := analyzer.AnalyzeURL(c, pageParams.URL)
 		if err != nil {
@@ -55,8 +58,14 @@ func RunWebServer(addr string) error {
 }
 
 type AnalyzerPageParams struct {
-	URL   string
+	AnalyzerFormParams
+
 	Stats WebPageStats
 
 	Error error
+}
+
+type AnalyzerFormParams struct {
+	URL                                   string
+	SkipInaccessibleCheck, SkipEmptyLinks bool
 }

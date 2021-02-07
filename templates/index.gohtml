@@ -25,15 +25,18 @@
             <div class="row">
                 <div class="col">
                     <label for="url">Enter your URL</label>
-                    <input class="form-control" type="url" name="url" id="url"/>
+                    <input class="form-control" type="url" name="url" id="url" value="{{html .URL}}"/>
                 </div>
                 <div class="col-2 align-self-end">
                     <button class="btn btn-primary btn-block" type="submit">Go !</button>
                 </div>
             </div>
             <div class="mt-1">
-                <label class="me-2"> <input type="checkbox" name="checkInaccessibleLinks" checked/> Check Inaccessible Links </label>
-                <label> <input type="checkbox" name="countEmptyLinks" checked/> Include Empty Links </label>
+                <label class="me-2">
+                    <input type="checkbox" name="checkInaccessibleLinks" {{if not .SkipInaccessibleCheck}} checked {{end}}/>
+                    Check Inaccessible Links
+                </label>
+                <label> <input type="checkbox" name="countEmptyLinks" {{if not .SkipEmptyLinks}} checked {{end}}/> Include Empty Links </label>
             </div>
         </form>
     {{end}}
