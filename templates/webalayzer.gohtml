@@ -1,103 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    {{template "header_base"}}
     <title>Home24 Webalayzer</title>
 </head>
 <body>
-<h1>Analyzing URL</h1>
-<h3>{{.URL}}</h3>
-<h5>Done in: {{.Stats.ProcessingDuration.Seconds}} seconds</h5>
-{{if .Error}}
-    <h1 style="color: darkred">An error occurred: {{.Error}}</h1>
-{{end}}
-<table>
-    {{with .Stats}}
-        <tbody >
-        <tr>
-            <th>HTML Version</th>
-            <td>{{.HTMLVersion}}</td>
-        </tr>
+<div class="container">
+    {{template "logo_header"}}
+    <div class="text-center">
+        <h2>Analyzed URL</h2>
+        <h5>{{.URL}}</h5>
+        <h6 class="text-black-50">Done in: {{.Stats.ProcessingDuration.Seconds}} seconds</h6>
+    </div>
 
-        <tr>
-            <th>Title</th>
-            <td>{{.Title}}</td>
-        </tr>
+    {{if .Error}}
+        <h1 style="color: darkred">An error occurred: {{.Error}}</h1>
+    {{else}}
+        <table class="table table-bordered">
+            {{with .Stats}}
+                <tbody>
+                <tr>
+                    <th>HTML Version</th>
+                    <td>{{.HTMLVersion}}</td>
+                </tr>
 
-        <tr>
-            <th>H1 Count</th>
-            <td>{{.H1Count}}</td>
-        </tr>
+                <tr>
+                    <th>Title</th>
+                    <td>{{.Title}}</td>
+                </tr>
 
-        <tr>
-            <th>H2 Count</th>
-            <td>{{.H2Count}}</td>
-        </tr>
+                <tr>
+                    <th>H1 Count</th>
+                    <td>{{.H1Count}}</td>
+                </tr>
 
-        <tr>
-            <th>H3 Count</th>
-            <td>{{.H3Count}}</td>
-        </tr>
+                <tr>
+                    <th>H2 Count</th>
+                    <td>{{.H2Count}}</td>
+                </tr>
 
-        <tr>
-            <th>H4 Count</th>
-            <td>{{.H4Count}}</td>
-        </tr>
+                <tr>
+                    <th>H3 Count</th>
+                    <td>{{.H3Count}}</td>
+                </tr>
 
-        <tr>
-            <th>H5 Count</th>
-            <td>{{.H5Count}}</td>
-        </tr>
+                <tr>
+                    <th>H4 Count</th>
+                    <td>{{.H4Count}}</td>
+                </tr>
 
-        <tr>
-            <th>H6 Count</th>
-            <td>{{.H6Count}}</td>
-        </tr>
+                <tr>
+                    <th>H5 Count</th>
+                    <td>{{.H5Count}}</td>
+                </tr>
 
-        <tr>
-            <th>Internal Links Count</th>
-            <td>{{.InternalLinksCount}}</td>
-        </tr>
+                <tr>
+                    <th>H6 Count</th>
+                    <td>{{.H6Count}}</td>
+                </tr>
 
-        <tr>
-            <th>External Links Count</th>
-            <td>{{.ExternalLinksCount}}</td>
-        </tr>
+                <tr>
+                    <th>Internal Links Count</th>
+                    <td>{{.InternalLinksCount}}</td>
+                </tr>
 
-        <tr>
-            <th>Inaccessible Links Count</th>
-            <td>{{.InaccessibleLinksCount}}</td>
-        </tr>
+                <tr>
+                    <th>External Links Count</th>
+                    <td>{{.ExternalLinksCount}}</td>
+                </tr>
 
-        <tr>
-            <th>Accessible Links Count</th>
-            <td>{{.AccessibleLinksCount}}</td>
-        </tr>
+                <tr>
+                    <th>Inaccessible Links Count</th>
+                    <td>{{.InaccessibleLinksCount}}</td>
+                </tr>
 
-        <tr>
-            <th>Has a Login Form?</th>
-            <td>{{.HasLoginForm}}</td>
-        </tr>
-        <tr>
-            <th>Has a Registration Form?</th>
-            <td>{{.HasRegistrationForm}}</td>
-        </tr>
-        </tbody>
+                <tr>
+                    <th>Accessible Links Count</th>
+                    <td>{{.AccessibleLinksCount}}</td>
+                </tr>
+
+                <tr>
+                    <th>Has a Login Form?</th>
+                    <td>{{.HasLoginForm}}</td>
+                </tr>
+                <tr>
+                    <th>Has a Registration Form?</th>
+                    <td>{{.HasRegistrationForm}}</td>
+                </tr>
+                </tbody>
+            {{end}}
+
+        </table>
     {{end}}
 
-</table>
-
-<div style="margin-top: 16px">
-    {{template "webalayzerForm" }}
+    <div class="pb-4" style="margin-top: 16px">
+        {{template "webalayzerForm" }}
+    </div>
 </div>
 
+
 </body>
-<style>
-    table, th, td {
-        border: 1px solid black;
-    }
-    table {
-        border-collapse: collapse;
-    }
-</style>
 </html>
