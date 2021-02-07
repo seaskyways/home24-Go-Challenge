@@ -1,17 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    {{template "header_base"}}
     <title>Home24 Webalayzer</title>
 </head>
 <body>
-{{block "webalayzerForm" .}}
-<form method="GET" action="webalayzer">
-    <label>Enter your URL
-        <input type="url" name="url"/>
-    </label>
-    <button type="submit">Go !</button>
-</form>
-{{end}}
+<div class="container">
+    {{block "logo_header" .}}
+        <div class="text-center">
+            <img class="d-block mx-auto" src="data:image/png;base64,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"
+                 alt="">
+            <h2>Home24 Webalayzer</h2>
+            <h6>By Ahmad Al-Sharif (SeaSkyWays)</h6>
+            <p class="lead">Please enter the URL you would like to analyze in the following form</p>
+        </div>
+    {{end}}
+        {{block "webalayzerForm" .}}
+            <form class="mx-5" method="GET" action="webalayzer">
+                <div class="row">
+                    <div class="col">
+                        <label for="url" >Enter your URL</label>
+                        <input class="form-control" type="url" name="url" id="url"/>
+                    </div>
+                    <div class="col-2 align-self-end">
+                        <button class="btn btn-primary btn-block" type="submit">Go !</button>
+                    </div>
+                </div>
+            </form>
+        {{end}}
+</div>
 </body>
 </html>
