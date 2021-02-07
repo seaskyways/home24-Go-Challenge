@@ -14,7 +14,6 @@ var (
 
 func RunWebServer(addr string) error {
 	engine := gin.Default()
-	analyzer := new(Analyzer)
 
 	engine.LoadHTMLGlob("templates/*.gohtml")
 
@@ -31,6 +30,10 @@ func RunWebServer(addr string) error {
 		if len(pageParams.URL) == 0 {
 			pageParams.Error = ErrNoURL
 		}
+
+		analyzer := new(Analyzer)
+		analyzer.SkipInaccessibleCheck = c.Query("checkInaccessibleLinks") != "on"
+		analyzer.SkipEmptyLinks = c.Query("countEmptyLinks") != "on"
 
 		webPageStats, err := analyzer.AnalyzeURL(c, pageParams.URL)
 		if err != nil {
